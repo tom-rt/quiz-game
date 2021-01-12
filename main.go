@@ -6,10 +6,16 @@ import (
 	"strconv"
 	"strings"
 	"bufio"
-    "log"
+	"log"
+	"time"
 )
 
-func playGame(ch chan bool) {
+func timeLimit(ch chan string, limit int) {
+	time.Sleep(time.Duration(limit) * time.Second)
+	ch <- "Time is out !"
+}
+
+func playGame(ch chan string) {
 	file, err := os.Open("./problems.csv")
 	if err != nil {
         log.Fatal("Impossible to open file:", err)
@@ -38,7 +44,7 @@ func playGame(ch chan bool) {
 			fmt.Println("Wrong answer !")
 		}
 	}
-	ch <- true
+	ch <- "You answered all questions !"
 }
 
 func main() {
@@ -46,9 +52,12 @@ func main() {
 	if (limit == -1) {
 		return
 	}
-	ch := make(chan bool)
+	ch := make(chan string)
+	go timeLimit(ch, limit)
 	go playGame(ch)
-	<-ch
+	
+	result := <-ch
+	fmt.Println(result)
 }
 
 func parseArgs() int {
